@@ -15,18 +15,15 @@ provider_users = {'buyer3@ustudio.com.ua': '123456',
                   'buyer5@ustudio.com.ua': '123456',
                   'seller@ustudio.com.ua': '123456'}
 
-locators = {'brizol': {
-                        'url': 'https://brizol.net',
+locators = {'opentender': {
+                        'url': 'https://open-tender.com.ua',
                        },
-            'opentender': {
-                           'url': 'http://prozorroc.byustudio.in.ua',
-                           }
             }
 
 number_of_features = 0
 create_new_tender = True
 tender_uaid = False
-keep_browser_open = True
+keep_browser_open = False
 
 
 
@@ -36,7 +33,7 @@ def createParser():
         description='This script allows you to create tender with different parameters and bid it.',
         epilog='Version 0.1'
     )
-    parser.add_argument('-m', '--method', default='open_aboveThresholdEU',
+    parser.add_argument('-m', '--method', default='open_competitiveDialogueEU',
                         help='sets tender method according to VALUE attribute in GUI | DEFAULT: open_competitiveDialogueUA',
                         metavar='tender method')
     parser.add_argument('-l', '--lots', default=0, type=int,
@@ -51,8 +48,8 @@ def createParser():
     parser.add_argument('-t', '--tender', default=40, type=int,
                         help='sets tender period in minutes | DEFAULT: 40 MIN',
                         metavar='tender period')
-    parser.add_argument('-p', '--platform', default='brizol',
-                        help='sets locators for platform | DEFAULT: brizol',
+    parser.add_argument('-p', '--platform', default='opentender',
+                        help='sets locators for platform | DEFAULT: opentender',
                         metavar='platform locators')
 
     return parser
@@ -157,8 +154,11 @@ def create_tender(tender_method):
     driver.implicitly_wait(10)
     driver.get(locators[platform]['url'])
     driver.maximize_window()
-    sign_in(driver, 'prozorroytenderowner@gmail.com', '123456')
+    sign_in(driver, 'buyer@ustudio.com.ua', '123456')
     driver.get('{}/buyer/tender/create'.format(locators[platform]['url']))
+    sleep(2)
+    if driver.find_element_by_xpath('//button[@data-dismiss="modal"]').is_displayed():
+        driver.find_element_by_xpath('//button[@data-dismiss="modal"]').click()
     select = Select(driver.find_element_by_name('tender_method'))
     select.select_by_value(tender_method)
     if number_of_lots:
@@ -202,7 +202,7 @@ def create_tender(tender_method):
         driver.find_element_by_name('Tender[tenderPeriod][startDate]').send_keys(
             (datetime.now() + timedelta(minutes=add_min_endOfEnquiryPeriod)).strftime("%d/%m/%Y %H:%M"))
     select = Select(driver.find_element_by_name('Tender[procuringEntity][contactPoint][fio]'))
-    select.select_by_value('24')
+    select.select_by_value('11')
     driver.find_element_by_xpath("//button[contains(@class,'btn_submit_form')]").click()
     while not driver.find_element_by_xpath("//*[@tid='title']").is_displayed():
         sleep(0.02)
@@ -233,7 +233,7 @@ def make_new_bid(tender_uaid, user, password):
     driver.find_element_by_xpath("//button[contains(text(),'Шукати')]").click()
     while tender_uaid not in driver.current_url:
         sleep(0.02)
-    driver.find_element_by_xpath("//a[contains(@href,'{}/seller/tender/view/')]".format(locators[platform]['url'])).click()
+    driver.find_element_by_xpath("//span[contains(text(),'{tender_uaid}') and contains('{tender_uaid}',text())]/ancestor::div[@class='thumbnail']/descendant::a".format(tender_uaid=tender_uaid)).click()
     if "bid_value" in driver.page_source:
         bid_amount = driver.find_elements_by_xpath("//input[contains(@class,'bid_value')]")
         for field in bid_amount:
