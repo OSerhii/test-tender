@@ -34,7 +34,7 @@ def createParser():
         epilog='Version 0.1'
     )
     parser.add_argument('-m', '--method', default='open_competitiveDialogueEU',
-                        help='sets tender method according to VALUE attribute in GUI | DEFAULT: open_competitiveDialogueUA',
+                        help='sets tender method according to VALUE attribute in GUI | DEFAULT: open_competitiveDialogueEU',
                         metavar='tender method')
     parser.add_argument('-l', '--lots', default=0, type=int,
                         help='sets number of lots to create in tender | DEFAULT: 0 LOTS',
@@ -51,6 +51,9 @@ def createParser():
     parser.add_argument('-p', '--platform', default='opentender',
                         help='sets locators for platform | DEFAULT: opentender',
                         metavar='platform locators')
+    parser.add_argument('-n', '--iterations', default=1, type=int,
+                        help='sets number of iterations| DEFAULT: 1',
+                        metavar='iterations')
 
     return parser
 
@@ -261,12 +264,13 @@ namespace = parser.parse_args(sys.argv[1:])
 tender_method = namespace.method
 number_of_lots = namespace.lots
 number_of_items = namespace.items
+number_of_tenders = namespace.iterations
 platform = namespace.platform
 add_min_endOfEnquiryPeriod = namespace.enquiry
 add_min_endOfTenderPeriod = namespace.tender
 
-
-tender_uaid = create_tender(tender_method)
-make_bids(tender_uaid)
+for i in range(number_of_tenders):
+    tender_uaid = create_tender(tender_method)
+    make_bids(tender_uaid)
 
 print (tender_uaid)
