@@ -16,15 +16,17 @@ provider_users = {'buyer3@ustudio.com.ua': '123456',
                   'seller@ustudio.com.ua': '123456'}
 
 locators = {'opentender': {
-                        'url': 'https://open-tender.com.ua',
-                       },
-            }
+    'url': 'https://open-tender.com.ua',
+},
+    'brizol': {
+        'url': 'https://brizol.net',
+    },
+}
 
 number_of_features = 0
 create_new_tender = True
 tender_uaid = False
 keep_browser_open = False
-
 
 
 def createParser():
@@ -33,8 +35,8 @@ def createParser():
         description='This script allows you to create tender with different parameters and bid it.',
         epilog='Version 0.1'
     )
-    parser.add_argument('-m', '--method', default='open_competitiveDialogueEU',
-                        help='sets tender method according to VALUE attribute in GUI | DEFAULT: open_competitiveDialogueEU',
+    parser.add_argument('-m', '--method', default='open_competitiveDialogueUA',
+                        help='sets tender method according to VALUE attribute in GUI | DEFAULT: open_competitiveDialogueUA',
                         metavar='tender method')
     parser.add_argument('-l', '--lots', default=0, type=int,
                         help='sets number of lots to create in tender | DEFAULT: 0 LOTS',
@@ -48,8 +50,8 @@ def createParser():
     parser.add_argument('-t', '--tender', default=40, type=int,
                         help='sets tender period in minutes | DEFAULT: 40 MIN',
                         metavar='tender period')
-    parser.add_argument('-p', '--platform', default='opentender',
-                        help='sets locators for platform | DEFAULT: opentender',
+    parser.add_argument('-p', '--platform', default='brizol',
+                        help='sets locators for platform | DEFAULT: brizol',
                         metavar='platform locators')
     parser.add_argument('-n', '--iterations', default=1, type=int,
                         help='sets number of iterations| DEFAULT: 1',
@@ -75,7 +77,8 @@ def create_lot(driver):
             driver.find_element_by_id('tender-title_en').send_keys('test tender EN')
             driver.find_element_by_name('Tender[description_en]').send_keys('test tender desc EN')
         driver.find_element_by_name('Tender[lots][' + lot_index_real + '][title]').send_keys('test lot ' + lot_index)
-        driver.find_element_by_name('Tender[lots][' + lot_index_real + '][title_en]').send_keys('test lot EN' + lot_index)
+        driver.find_element_by_name('Tender[lots][' + lot_index_real + '][title_en]').send_keys(
+            'test lot EN' + lot_index)
         driver.find_element_by_name('Tender[lots][' + lot_index_real + '][description]').send_keys(
             'test lot ' + lot_index + ' desc')
         driver.find_element_by_name('Tender[lots][' + lot_index_real + '][description_en]').send_keys(
@@ -205,7 +208,7 @@ def create_tender(tender_method):
         driver.find_element_by_name('Tender[tenderPeriod][startDate]').send_keys(
             (datetime.now() + timedelta(minutes=add_min_endOfEnquiryPeriod)).strftime("%d/%m/%Y %H:%M"))
     select = Select(driver.find_element_by_name('Tender[procuringEntity][contactPoint][fio]'))
-    select.select_by_value('11')
+    select.select_by_index('2')
     driver.find_element_by_xpath("//button[contains(@class,'btn_submit_form')]").click()
     while not driver.find_element_by_xpath("//*[@tid='title']").is_displayed():
         sleep(0.02)
@@ -236,7 +239,14 @@ def make_new_bid(tender_uaid, user, password):
     driver.find_element_by_xpath("//button[contains(text(),'Шукати')]").click()
     while tender_uaid not in driver.current_url:
         sleep(0.02)
-    driver.find_element_by_xpath("//span[contains(text(),'{tender_uaid}') and contains('{tender_uaid}',text())]/ancestor::div[@class='thumbnail']/descendant::a".format(tender_uaid=tender_uaid)).click()
+    if platform == 'brizol':
+        driver.find_element_by_xpath(
+            "//*[contains(text(),'{tender_uaid}') and contains('{tender_uaid}',text())]/ancestor::div[@class='panel panel-default']/descendant::a".format(
+                tender_uaid=tender_uaid)).click()
+    else:
+        driver.find_element_by_xpath(
+            "//span[contains(text(),'{tender_uaid}') and contains('{tender_uaid}',text())]/ancestor::div[@class='thumbnail']/descendant::a".format(
+                tender_uaid=tender_uaid)).click()
     if "bid_value" in driver.page_source:
         bid_amount = driver.find_elements_by_xpath("//input[contains(@class,'bid_value')]")
         for field in bid_amount:
