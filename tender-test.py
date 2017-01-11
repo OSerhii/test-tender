@@ -35,7 +35,7 @@ def createParser():
         description='This script allows you to create tender with different parameters and bid it.',
         epilog='Version 0.1'
     )
-    parser.add_argument('-m', '--method', default='open_competitiveDialogueUA',
+    parser.add_argument('-m', '--method', default='open_aboveThresholdUA',
                         help='sets tender method according to VALUE attribute in GUI | DEFAULT: open_competitiveDialogueUA',
                         metavar='tender method')
     parser.add_argument('-l', '--lots', default=0, type=int,
@@ -76,13 +76,13 @@ def create_lot(driver):
         if 'EU' in tender_method:
             driver.find_element_by_id('tender-title_en').send_keys('test tender EN')
             driver.find_element_by_name('Tender[description_en]').send_keys('test tender desc EN')
+            driver.find_element_by_name('Tender[lots][' + lot_index_real + '][title_en]').send_keys(
+                'test lot EN' + lot_index)
+            driver.find_element_by_name('Tender[lots][' + lot_index_real + '][description_en]').send_keys(
+                'test lot EN' + lot_index + ' desc')
         driver.find_element_by_name('Tender[lots][' + lot_index_real + '][title]').send_keys('test lot ' + lot_index)
-        driver.find_element_by_name('Tender[lots][' + lot_index_real + '][title_en]').send_keys(
-            'test lot EN' + lot_index)
         driver.find_element_by_name('Tender[lots][' + lot_index_real + '][description]').send_keys(
             'test lot ' + lot_index + ' desc')
-        driver.find_element_by_name('Tender[lots][' + lot_index_real + '][description_en]').send_keys(
-            'test lot EN' + lot_index + ' desc')
         driver.find_element_by_name('Tender[lots][' + lot_index_real + '][value][amount]').send_keys('100000')
         driver.find_element_by_name('Tender[lots][' + lot_index_real + '][minimalStep][amount]').send_keys('1000')
         add_items(driver, lot_index)
@@ -173,7 +173,7 @@ def create_tender(tender_method):
         add_items(driver, "not created")
         driver.find_element_by_id('value-amount').send_keys('10000')
         driver.find_element_by_id('minimalstepvalue-amount').send_keys('100')
-        driver.find_element_by_id('tender-title').send_keys('test tender without lots')
+        driver.find_element_by_id('tender-title').send_keys('test tender without lots {}'.format(datetime.now()))
         driver.find_element_by_id('tender-description').send_keys('test tender desc')
         if 'EU' in tender_method:
             driver.find_element_by_id('tender-title_en').send_keys('test tender without lots EN')
