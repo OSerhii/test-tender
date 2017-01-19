@@ -251,7 +251,7 @@ def make_new_bid(tender_uaid, user, password):
             field.send_keys('100')
             driver.find_element_by_id('bid-selfeligible').send_keys(Keys.NULL)
             wait_until_element_is_not_visible(driver, "//div[@class='spinner']", 20)
-    if driver.find_element_by_xpath('//select[contains(@name,"parameter")]').is_displayed():
+    if 'bid_feature_select' in driver.page_source:
         list_of_features = driver.find_elements_by_xpath('//select[contains(@name,"parameter")]')
         for feature in list_of_features:
             select = Select(feature)
