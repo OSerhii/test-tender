@@ -251,6 +251,11 @@ def make_new_bid(tender_uaid, user, password):
             field.send_keys('100')
             driver.find_element_by_id('bid-selfeligible').send_keys(Keys.NULL)
             wait_until_element_is_not_visible(driver, "//div[@class='spinner']", 20)
+    if driver.find_element_by_xpath('//select[contains(@name,"parameter")]').is_displayed():
+        list_of_features = driver.find_elements_by_xpath('//select[contains(@name,"parameter")]')
+        for feature in list_of_features:
+            select = Select(feature)
+            select.select_by_index(1)
     checkbox_list = driver.find_elements_by_xpath("//label[contains(text(), 'Приймаю участь')]/input")
     for elem in checkbox_list:
         elem.click()
