@@ -28,7 +28,7 @@ locators = {'opentender': {
     },
 }
 
-number_of_features = 0
+number_of_features = 2
 create_new_tender = True
 tender_uaid = False
 keep_browser_open = False
@@ -66,7 +66,7 @@ def createParser():
 
 
 def create_lot(driver):
-    lot_amount = round(random.uniform(3000, 999999999.99), 2)
+    lot_amount = round(random.uniform(3000, 9999.99), 2)
     lot_minimal_step_amount = round(random.uniform(0.01, 0.03) * lot_amount, 2)
     select = Select(driver.find_element_by_name('tender_type'))
     select.select_by_value('2')
@@ -74,9 +74,7 @@ def create_lot(driver):
         if lot_index_int != 0:
             driver.find_element_by_class_name('add_lot').click()
         lot_index_real = \
-            driver.find_element_by_xpath("(//input[contains(@class,'lot_title')])[last()]").get_attribute('id').split(
-                '-')[
-                1]
+            driver.find_element_by_xpath("(//input[contains(@class,'lot_title')])[last()]").get_attribute('id').split('-')[1]
         lot_index = str(lot_index_int + 1)
         driver.find_element_by_id('tender-title').send_keys('test tender')
         driver.find_element_by_name('Tender[description]').send_keys(
@@ -147,26 +145,20 @@ def add_items(driver, lot_index):
 def add_feature(driver, lot_index):
     for feature_index in range(number_of_features):
         driver.find_element_by_xpath("(//button[contains(@class, 'add_feature')])[last()-2]").click()
-        feature_index_real = \
-            driver.find_element_by_xpath("(//input[contains(@class,'feature_title')])[last()-1]").get_attribute(
-                'id').split(
-                '-')[1]
-        driver.find_element_by_name('Tender[features][' + feature_index_real + '][title]').send_keys(
-            'test feature title lot' + lot_index)
+        feature_index_real = driver.find_element_by_xpath("(//div[contains(@class,'lots_block')]/descendant::input[contains(@name,'Tender[features][')])[last()]").get_attribute('feature_count')
+        driver.find_element_by_name('Tender[features][' + feature_index_real + '][title]').send_keys('test feature title lot' + lot_index)
         driver.find_element_by_name('Tender[features][' + feature_index_real + '][description]').send_keys('hint')
-        driver.find_element_by_xpath(
-            '//select[@name="Tender[features][' + feature_index_real + '][relatedItem]"]/optgroup[3]/option[1]').click()
+        driver.find_element_by_xpath('//select[@name="Tender[features][' + feature_index_real + '][relatedItem]"]/optgroup[3]/option[1]').click()
         for enum in range(2):
             if enum != 0:
                 driver.find_element_by_xpath("(//button[contains(@class,'add_feature_enum')])[last()-1]").click()
-            driver.find_element_by_xpath("(//input[contains(@class,'enum_title')])[last()-1]").send_keys(
-                'test ' + str(enum))
-            driver.find_element_by_xpath("(//input[contains(@class,'feature_enum_input')])[last()-1]").send_keys(enum)
+            driver.find_element_by_name("Tender[features][" + feature_index_real + "][enum][" + str(enum) + "][title]").send_keys('test ' + str(enum))
+            driver.find_element_by_name("Tender[features][" + feature_index_real + "][enum][" + str(enum) + "][value]").send_keys(0 + enum)
 
 
 def create_tender(tender_method):
     print('STEP 1:  Creating tender ...')
-    amount = round(random.uniform(3000, 999999999.99), 2)
+    amount = round(random.uniform(3000, 9999.99), 2)
     minimal_step_amount = round(random.uniform(0.01, 0.03) * amount, 2)
     driver = webdriver.Chrome()
     driver.implicitly_wait(10)
@@ -194,22 +186,15 @@ def create_tender(tender_method):
                 'test tender desc EN (tender method = {})'.format(tender_method))
     for feature_index in range(number_of_features):
         driver.find_element_by_xpath("(//button[contains(@class, 'add_feature')])[last()]").click()
-        feature_index_real = \
-            driver.find_element_by_xpath("(//input[contains(@class,'feature_title')])[last()]").get_attribute(
-                'id').split(
-                '-')[1]
-        driver.find_element_by_name('Tender[features][' + (feature_index_real) + '][title]').send_keys(
-            'test feature title tender')
-        driver.find_element_by_name('Tender[features][' + (feature_index_real) + '][description]').send_keys('hint')
-        driver.find_element_by_xpath('//select[@name="Tender[features][' + (
-            feature_index_real) + '][relatedItem]"]/optgroup[1]/option[1]').click()
+        feature_index_real = driver.find_element_by_xpath("(//input[contains(@class,'feature_title')])[last()]").get_attribute('id').split('-')[1]
+        driver.find_element_by_name('Tender[features][' + feature_index_real + '][title]').send_keys('test feature title tender')
+        driver.find_element_by_name('Tender[features][' + feature_index_real + '][description]').send_keys('hint')
+        driver.find_element_by_xpath('//select[@name="Tender[features][' + feature_index_real + '][relatedItem]"]/optgroup[1]/option[1]').click()
         for enum in range(2):
             if enum != 0:
                 driver.find_element_by_xpath("(//button[contains(@class,'add_feature_enum')])[last()]").click()
-            driver.find_element_by_xpath("(//input[contains(@class,'enum_title')])[last()]").send_keys(
-                'test ' + str(enum))
-            driver.find_element_by_xpath("(//input[contains(@class,'feature_enum_input')])[last()]").send_keys(
-                random.randint(8, 16) - random.randint(1, 7))
+            driver.find_element_by_name("Tender[features][" + feature_index_real + "][enum][" + str(enum) + "][title]").send_keys('test ' + str(enum))
+            driver.find_element_by_name("Tender[features][" + feature_index_real + "][enum][" + str(enum) + "][value]").send_keys(0 + enum)
     driver.find_element_by_name('Tender[tenderPeriod][endDate]').clear()
     driver.find_element_by_name('Tender[tenderPeriod][endDate]').send_keys(
         (datetime.now() + timedelta(minutes=add_min_endOfTenderPeriod)).strftime("%d/%m/%Y %H:%M"))
@@ -222,7 +207,7 @@ def create_tender(tender_method):
         driver.find_element_by_name('Tender[tenderPeriod][startDate]').send_keys(
             (datetime.now() + timedelta(minutes=add_min_endOfEnquiryPeriod)).strftime("%d/%m/%Y %H:%M"))
     select = Select(driver.find_element_by_name('Tender[procuringEntity][contactPoint][fio]'))
-    select.select_by_index('2')
+    select.select_by_index('1')
     driver.find_element_by_xpath("//button[contains(@class,'btn_submit_form')]").click()
     wait_until_element_is_visible(driver, "//*[@tid='title']", 20)
     tender_uaid = driver.find_element_by_xpath('//*[@tid="tenderID"]').text
@@ -263,7 +248,7 @@ def make_new_bid(tender_uaid, user, password):
     if "bid_value" in driver.page_source:
         bid_amount = driver.find_elements_by_xpath("//input[contains(@class,'bid_value')]")
         for field in bid_amount:
-            field.send_keys('10000')
+            field.send_keys('100')
             driver.find_element_by_id('bid-selfeligible').send_keys(Keys.NULL)
             wait_until_element_is_not_visible(driver, "//div[@class='spinner']", 20)
     checkbox_list = driver.find_elements_by_xpath("//label[contains(text(), 'Приймаю участь')]/input")
@@ -307,7 +292,7 @@ def wait_until_element_is_visible(driver, locator, timeout):
 def wait_until_element_is_not_visible(driver, locator, timeout):
     maxtime = time.time() + timeout
 
-    def check_visibility():
+    def check_hidden():
         visible = driver.find_element_by_xpath(locator).is_displayed()
         if not visible:
             return
@@ -317,7 +302,7 @@ def wait_until_element_is_not_visible(driver, locator, timeout):
             return "Element locator {} was still visible after {} seconds".format(locator, timeout)
 
     while True:
-        error = check_visibility()
+        error = check_hidden()
         if not error: return
         if time.time() > maxtime:
             raise AssertionError(error)
