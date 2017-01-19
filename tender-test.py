@@ -5,6 +5,7 @@
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.keys import Keys
+import time
 from time import sleep
 from datetime import datetime, timedelta
 import random
@@ -78,10 +79,12 @@ def create_lot(driver):
                 1]
         lot_index = str(lot_index_int + 1)
         driver.find_element_by_id('tender-title').send_keys('test tender')
-        driver.find_element_by_name('Tender[description]').send_keys('test tender description (tender method = {})'.format(tender_method))
+        driver.find_element_by_name('Tender[description]').send_keys(
+            'test tender description (tender method = {})'.format(tender_method))
         if 'EU' in tender_method:
             driver.find_element_by_id('tender-title_en').send_keys('test tender EN')
-            driver.find_element_by_name('Tender[description_en]').send_keys('test tender desc EN (tender method = {})'.format(tender_method))
+            driver.find_element_by_name('Tender[description_en]').send_keys(
+                'test tender desc EN (tender method = {})'.format(tender_method))
             driver.find_element_by_name('Tender[lots][' + lot_index_real + '][title_en]').send_keys(
                 'test lot EN' + lot_index)
             driver.find_element_by_name('Tender[lots][' + lot_index_real + '][description_en]').send_keys(
@@ -90,7 +93,8 @@ def create_lot(driver):
         driver.find_element_by_name('Tender[lots][' + lot_index_real + '][description]').send_keys(
             'test lot ' + lot_index + ' desc')
         driver.find_element_by_name('Tender[lots][' + lot_index_real + '][value][amount]').send_keys(lot_amount)
-        driver.find_element_by_name('Tender[lots][' + lot_index_real + '][minimalStep][amount]').send_keys(lot_minimal_step_amount)
+        driver.find_element_by_name('Tender[lots][' + lot_index_real + '][minimalStep][amount]').send_keys(
+            lot_minimal_step_amount)
         add_items(driver, lot_index)
         add_feature(driver, lot_index)
 
@@ -113,14 +117,12 @@ def add_items(driver, lot_index):
             driver.find_element_by_name('Tender[items][' + item_index + '][additionalClassifications][0][dkType]'))
         select.select_by_value('000')
         driver.find_element_by_name('Tender[items][' + item_index + '][classification][description]').click()
-        while not driver.find_element_by_id('search_code').is_displayed():
-            sleep(0.02)
+        wait_until_element_is_visible(driver, '//*[@id="search_code"]', 20)
         driver.find_element_by_id('search_code').clear()
         driver.find_element_by_id('search_code').send_keys('03111100-3')
         driver.find_element_by_xpath('//span[contains(text(), "03111100-3")]/../..').click()
         driver.find_element_by_id('btn-ok').click()
-        while driver.find_element_by_id("classificator-modal").is_displayed():
-            sleep(0.02)
+        wait_until_element_is_not_visible(driver, "//*[@id='classificator-modal']", 20)
         select = Select(
             driver.find_element_by_name('Tender[items][' + item_index + '][additionalClassifications][0][dkType]'))
         select.select_by_value('000')
@@ -184,10 +186,12 @@ def create_tender(tender_method):
         driver.find_element_by_id('value-amount').send_keys(amount)
         driver.find_element_by_id('minimalstepvalue-amount').send_keys(minimal_step_amount)
         driver.find_element_by_id('tender-title').send_keys('test tender without lots {}'.format(datetime.now()))
-        driver.find_element_by_id('tender-description').send_keys('test tender description (tender method = {})'.format(tender_method))
+        driver.find_element_by_id('tender-description').send_keys(
+            'test tender description (tender method = {})'.format(tender_method))
         if 'EU' in tender_method:
             driver.find_element_by_id('tender-title_en').send_keys('test tender without lots EN')
-            driver.find_element_by_id('tender-description_en').send_keys('test tender desc EN (tender method = {})'.format(tender_method))
+            driver.find_element_by_id('tender-description_en').send_keys(
+                'test tender desc EN (tender method = {})'.format(tender_method))
     for feature_index in range(number_of_features):
         driver.find_element_by_xpath("(//button[contains(@class, 'add_feature')])[last()]").click()
         feature_index_real = \
@@ -220,8 +224,7 @@ def create_tender(tender_method):
     select = Select(driver.find_element_by_name('Tender[procuringEntity][contactPoint][fio]'))
     select.select_by_index('2')
     driver.find_element_by_xpath("//button[contains(@class,'btn_submit_form')]").click()
-    while not driver.find_element_by_xpath("//*[@tid='title']").is_displayed():
-        sleep(0.02)
+    wait_until_element_is_visible(driver, "//*[@tid='title']", 20)
     tender_uaid = driver.find_element_by_xpath('//*[@tid="tenderID"]').text
     print('FINISHED STEP 1')
     print('Tender uaid: {}'.format(tender_uaid))
@@ -262,16 +265,14 @@ def make_new_bid(tender_uaid, user, password):
         for field in bid_amount:
             field.send_keys('10000')
             driver.find_element_by_id('bid-selfeligible').send_keys(Keys.NULL)
-            while driver.find_element_by_xpath("//div[@class='spinner']").is_displayed():
-                sleep(0.02)
+            wait_until_element_is_not_visible(driver, "//div[@class='spinner']", 20)
     checkbox_list = driver.find_elements_by_xpath("//label[contains(text(), 'Приймаю участь')]/input")
     for elem in checkbox_list:
         elem.click()
     driver.find_element_by_id('bid-selfeligible').click()
     driver.find_element_by_id('bid-selfqualified').click()
     driver.find_element_by_id('submit_bid').click()
-    while not driver.find_element_by_xpath("//div[contains(@class, 'alert-success')]").is_displayed():
-        sleep(0.02)
+    wait_until_element_is_visible(driver, "//div[contains(@class, 'alert-success')]", 20)
     driver.close()
 
 
@@ -280,6 +281,47 @@ def make_bids(tender_uaid):
     for user in provider_users:
         make_new_bid(tender_uaid, user, provider_users[user])
     print('FINISHED STEP 2')
+
+
+def wait_until_element_is_visible(driver, locator, timeout):
+    maxtime = time.time() + timeout
+
+    def check_visibility():
+        visible = driver.find_element_by_xpath(locator).is_displayed()
+        if visible:
+            return
+        elif visible is None:
+            return "Element locator {} didn`t match any elements after {} seconds".format(locator, timeout)
+        else:
+            return "Element locator {} was not visible after {} seconds".format(locator, timeout)
+
+    while True:
+        error = check_visibility()
+        if not error:
+            return
+        if time.time() > maxtime:
+            raise AssertionError(error)
+        sleep(0.02)
+
+
+def wait_until_element_is_not_visible(driver, locator, timeout):
+    maxtime = time.time() + timeout
+
+    def check_visibility():
+        visible = driver.find_element_by_xpath(locator).is_displayed()
+        if not visible:
+            return
+        elif visible is None:
+            return "Element locator {} didn`t match any elements after {} seconds".format(locator, timeout)
+        else:
+            return "Element locator {} was still visible after {} seconds".format(locator, timeout)
+
+    while True:
+        error = check_visibility()
+        if not error: return
+        if time.time() > maxtime:
+            raise AssertionError(error)
+        sleep(0.02)
 
 
 parser = createParser()
