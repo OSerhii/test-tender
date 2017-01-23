@@ -121,13 +121,13 @@ def add_items(driver, lot_index):
         driver.find_element_by_xpath('//span[contains(text(), "03111100-3")]/../..').click()
         driver.find_element_by_id('btn-ok').click()
         wait_until_element_is_not_visible(driver, "//*[@id='classificator-modal']", 20)
-        select = Select(
-            driver.find_element_by_name('Tender[items][' + item_index + '][additionalClassifications][0][dkType]'))
-        select.select_by_value('000')
-        driver.find_element_by_name('Tender[items][' + item_index + '][deliveryAddress][countryName]').send_keys(
-            'test countryName')
-        driver.find_element_by_name('Tender[items][' + item_index + '][deliveryAddress][region]').send_keys(
-            'test region')
+        select_dk = Select(driver.find_element_by_name('Tender[items][' + item_index + '][additionalClassifications][0][dkType]'))
+        select_dk.select_by_value('000')
+        select_country = Select(driver.find_element_by_name('Tender[items][' + item_index + '][deliveryAddress][countryName]'))
+        select_country.select_by_value(u'Україна')
+        wait_until_element_is_visible(driver, u'//select[@name="Tender[items][' + item_index + u'][deliveryAddress][region]"]/option[@value="Чернігівська"]', 10)
+        select_region = Select(driver.find_element_by_name('Tender[items][' + item_index + '][deliveryAddress][region]'))
+        select_region.select_by_index(random.randint(1, 24))
         driver.find_element_by_name('Tender[items][' + item_index + '][deliveryAddress][locality]').send_keys(
             'test locality')
         driver.find_element_by_name('Tender[items][' + item_index + '][deliveryAddress][streetAddress]').send_keys(
